@@ -44,3 +44,23 @@ std::string User::hashPassword(const std::string& password) {
     ss << std::hex << hashValue;
     return ss.str();
 }
+bool User::login(const std::string& username, const std::string& password) {
+    std::string hashedInput = hashPassword(password);
+    std::ifstream file(FILE_PATH);
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            size_t pos2 = line.find("|", line.find("|") + 1);
+            size_t pos3 = line.find("|", pos2 + 1);
+            std::string fileUsername = line.substr(pos2 + 1, pos3 - pos2 - 1);
+            std::string filePassword = line.substr(pos3 + 1, line.find("|", pos3 + 1) - pos3 - 1);
+            if (fileUsername == username && filePassword == hashedInput) {
+                loadFromId(std::stoi(line.substr(0, line.find("|"))));
+                file.close();
+                return true;
+            }
+        }
+        file.close();
+    }
+    return false;
+}
