@@ -1,295 +1,236 @@
-#include "user.h"
-#include <sstream>
-#include <wx/textdlg.h>
-#include <functional> 
-#include <iomanip>    
-#include "wallet.h"
+#include "customer_frame.h"
+#include "login_frame.h" // Thêm để dùng LoginFrame
 
-const std::string User::FILE_PATH = "E:/tai_lieu/c++/taikhoan.txt";
-const std::string User::WALLET_FILE_PATH = "E:/tai_lieu/c++/wallets.txt";
+CustomerFrame::CustomerFrame(const wxString& title, int userId) 
+    : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(500, 400)), userId(userId) {
+    customer = new Customer();
+    customer->loadFromId(userId);
+    
+    wxPanel* mainPanel = new wxPanel(this);
+    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+    
+    notebook = new wxNotebook(mainPanel, wxID_ANY);
+    
+    // Tab 1: View Info
+    wxPanel* infoPanel = new wxPanel(notebook);
+    wxBoxSizer* infoSizer = new wxBoxSizer(wxVERTICAL);
+    wxButton* viewInfoBtn = new wxButton(infoPanel, wxID_ANY, "Xem Thong Tin");
+    outputText = new wxTextCtrl(infoPanel, wxID_ANY, "", wxDefaultPosition, wxSize(450, 150), 
+                                wxTE_MULTILINE | wxTE_READONLY);
+    infoSizer->Add(viewInfoBtn, 0, wxALL, 5);
+    infoSizer->Add(outputText, 1, wxEXPAND | wxALL, 5);
+    infoPanel->SetSizer(infoSizer);
+    notebook->AddPage(infoPanel, "Thong Tin");
+    
+    // Tab 2: Change Password
+    wxPanel* passwordPanel = new wxPanel(notebook);
+    wxBoxSizer* passwordSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* passwordInputSizer = new wxBoxSizer(wxHORIZONTAL);
+    passwordInputSizer->Add(new wxStaticText(passwordPanel, wxID_ANY, "Mat Khau Cu:"), 
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    oldPasswordInput = new wxTextCtrl(passwordPanel, wxID_ANY, "", wxDefaultPosition, 
+                                      wxDefaultSize, wxTE_PASSWORD);
+    passwordInputSizer->Add(oldPasswordInput, 1, wxALL | wxEXPAND, 5);
+    passwordInputSizer->Add(new wxStaticText(passwordPanel, wxID_ANY, "Mat Khau Moi:"), 
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    newPasswordInput = new wxTextCtrl(passwordPanel, wxID_ANY, "", wxDefaultPosition, 
+                                      wxDefaultSize, wxTE_PASSWORD);
+    passwordInputSizer->Add(newPasswordInput, 1, wxALL | wxEXPAND, 5);
+    wxButton* changePasswordBtn = new wxButton(passwordPanel, wxID_ANY, "Doi Mat Khau");
+    passwordSizer->Add(passwordInputSizer, 0, wxEXPAND | wxALL, 5);
+    passwordSizer->Add(changePasswordBtn, 0, wxALL, 5);
+    passwordPanel->SetSizer(passwordSizer);
+    notebook->AddPage(passwordPanel, "Doi Mat Khau");
+    
+    // Tab 3: Update Info
+    wxPanel* updatePanel = new wxPanel(notebook);
+    wxBoxSizer* updateSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* updateInputSizer = new wxBoxSizer(wxHORIZONTAL);
+    updateInputSizer->Add(new wxStaticText(updatePanel, wxID_ANY, "Ten:"), 
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    nameInput = new wxTextCtrl(updatePanel, wxID_ANY);
+    updateInputSizer->Add(nameInput, 1, wxALL | wxEXPAND, 5);
+    updateInputSizer->Add(new wxStaticText(updatePanel, wxID_ANY, "Ngay Sinh:"), 
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    dobInput = new wxTextCtrl(updatePanel, wxID_ANY);
+    updateInputSizer->Add(dobInput, 1, wxALL | wxEXPAND, 5);
+    wxBoxSizer* addrSizer = new wxBoxSizer(wxHORIZONTAL);
+    addrSizer->Add(new wxStaticText(updatePanel, wxID_ANY, "Dia Chi:"), 
+                   0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    addressInput = new wxTextCtrl(updatePanel, wxID_ANY);
+    addrSizer->Add(addressInput, 1, wxALL | wxEXPAND, 5);
+    wxButton* updateBtn = new wxButton(updatePanel, wxID_ANY, "Cap Nhat");
+    updateSizer->Add(updateInputSizer, 0, wxEXPAND | wxALL, 5);
+    updateSizer->Add(addrSizer, 0, wxEXPAND | wxALL, 5);
+    updateSizer->Add(updateBtn, 0, wxALL, 5);
+    updatePanel->SetSizer(updateSizer);
+    notebook->AddPage(updatePanel, "Cap Nhat Thong Tin");
 
-User::User() : id(0), accountType(0), walletId(0) {}
-User::User(int id, int type, const std::string& username, const std::string& password,
-           const std::string& name, const std::string& dob, const std::string& address, int walletId)
-    : id(id), accountType(type), username(username), hashedPassword(hashPassword(password)),
-      name(name), dob(dob), address(address), walletId(walletId) {}
+    // Tab 4: Transfer Points
+    wxPanel* transferPanel = new wxPanel(notebook);
+    wxBoxSizer* transferSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* transferInputSizer = new wxBoxSizer(wxHORIZONTAL);
+    transferInputSizer->Add(new wxStaticText(transferPanel, wxID_ANY, "Username Nguoi Nhan:"), 
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    receiverUsernameInput = new wxTextCtrl(transferPanel, wxID_ANY);
+    transferInputSizer->Add(receiverUsernameInput, 1, wxALL | wxEXPAND, 5);
+    transferInputSizer->Add(new wxStaticText(transferPanel, wxID_ANY, "Diem Chuyen:"), 
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    transferPointsInput = new wxTextCtrl(transferPanel, wxID_ANY);
+    transferInputSizer->Add(transferPointsInput, 1, wxALL | wxEXPAND, 5);
+    wxButton* transferPointsBtn = new wxButton(transferPanel, wxID_ANY, "Chuyen Diem");
+    transferSizer->Add(transferInputSizer, 0, wxEXPAND | wxALL, 5);
+    transferSizer->Add(transferPointsBtn, 0, wxALL, 5);
+    transferPanel->SetSizer(transferSizer);
+    notebook->AddPage(transferPanel, "Chuyen Diem");
 
-User::~User() {
+    // Tab 5: Search Customer
+    wxPanel* searchPanel = new wxPanel(notebook);
+    wxBoxSizer* searchSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* searchInputSizer = new wxBoxSizer(wxHORIZONTAL);
+    searchInputSizer->Add(new wxStaticText(searchPanel, wxID_ANY, "Username:"), 
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    searchUsernameInput = new wxTextCtrl(searchPanel, wxID_ANY);
+    searchInputSizer->Add(searchUsernameInput, 1, wxALL | wxEXPAND, 5);
+    wxButton* searchBtn = new wxButton(searchPanel, wxID_ANY, "Tim Kiem");
+    searchSizer->Add(searchInputSizer, 0, wxEXPAND | wxALL, 5);
+    searchSizer->Add(searchBtn, 0, wxALL, 5);
+    searchPanel->SetSizer(searchSizer);
+    notebook->AddPage(searchPanel, "Tim Khach Hang");
+
+    // Tab 6: Transaction History
+    wxPanel* historyPanel = new wxPanel(notebook);
+    wxBoxSizer* historySizer = new wxBoxSizer(wxVERTICAL);
+    wxButton* viewHistoryBtn = new wxButton(historyPanel, wxID_ANY, "Xem Lich Su");
+    historyText = new wxTextCtrl(historyPanel, wxID_ANY, "", wxDefaultPosition, wxSize(450, 150), 
+                                 wxTE_MULTILINE | wxTE_READONLY);
+    historySizer->Add(viewHistoryBtn, 0, wxALL, 5);
+    historySizer->Add(historyText, 1, wxEXPAND | wxALL, 5);
+    historyPanel->SetSizer(historySizer);
+    notebook->AddPage(historyPanel, "Lich Su Giao Dich");
+    
+    wxButton* logoutBtn = new wxButton(mainPanel, wxID_ANY, "Dang Xuat");
+    
+    mainSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
+    mainSizer->Add(logoutBtn, 0, wxALL | wxALIGN_CENTER, 5);
+    mainPanel->SetSizer(mainSizer);
+    
+    // Bind events
+    viewInfoBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnViewInfo, this);
+    changePasswordBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnChangePassword, this);
+    updateBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnUpdateInfo, this);
+    transferPointsBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnTransferPoints, this);
+    searchBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnSearchCustomer, this);
+    viewHistoryBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnViewHistory, this);
+    logoutBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnLogout, this);
+    Bind(wxEVT_CLOSE_WINDOW, &CustomerFrame::OnClose, this);
+
+    Centre(); // Căn giữa cửa sổ
 }
 
-int User::getMaxId() {
-    std::ifstream file(FILE_PATH);
-    int maxId = 0;
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            try {
-                if (!line.empty()) {
-                    int id = std::stoi(line.substr(0, line.find("|")));
-                    if (id > maxId) maxId = id;
-                }
-            } catch (const std::exception&) {
-                continue; // Bỏ qua dòng lỗi
-            }
-        }
-        file.close();
-    }
-    return maxId;
+CustomerFrame::~CustomerFrame() {
+    delete customer;
 }
 
-std::string User::hashPassword(const std::string& password) {
-    std::hash<std::string> hasher;
-    size_t hashValue = hasher(password);
-    std::stringstream ss;
-    ss << std::hex << hashValue;
-    return ss.str();
-}
-bool User::login(const std::string& username, const std::string& password) {
-    std::string hashedInput = hashPassword(password);
-    std::ifstream file(FILE_PATH);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            size_t pos2 = line.find("|", line.find("|") + 1);
-            size_t pos3 = line.find("|", pos2 + 1);
-            std::string fileUsername = line.substr(pos2 + 1, pos3 - pos2 - 1);
-            std::string filePassword = line.substr(pos3 + 1, line.find("|", pos3 + 1) - pos3 - 1);
-            if (fileUsername == username && filePassword == hashedInput) {
-                loadFromId(std::stoi(line.substr(0, line.find("|"))));
-                file.close();
-                return true;
-            }
-        }
-        file.close();
-    }
-    return false;
-}
-void User::loadFromId(int id) {
-    std::ifstream file(FILE_PATH);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            size_t pos1 = line.find("|");
-            if (pos1 != std::string::npos && std::stoi(line.substr(0, pos1)) == id) {
-                size_t pos2 = line.find("|", pos1 + 1);
-                size_t pos3 = line.find("|", pos2 + 1);
-                size_t pos4 = line.find("|", pos3 + 1);
-                size_t pos5 = line.find("|", pos4 + 1);
-                size_t pos6 = line.find("|", pos5 + 1);
-                size_t pos7 = line.rfind("|");
-                this->id = id;
-                this->accountType = std::stoi(line.substr(pos1 + 1, pos2 - pos1 - 1));
-                this->username = line.substr(pos2 + 1, pos3 - pos2 - 1);
-                this->hashedPassword = line.substr(pos3 + 1, pos4 - pos3 - 1);
-                this->name = line.substr(pos4 + 1, pos5 - pos4 - 1);
-                this->dob = line.substr(pos5 + 1, pos6 - pos5 - 1);
-                this->address = line.substr(pos6 + 1, pos7 - pos6 - 1);
-                this->walletId = std::stoi(line.substr(pos7 + 1));
-                break;
-            }
-        }
-        file.close();
-    }
-}
-bool User::isUsernameTaken(const std::string& username) {
-    std::ifstream file(FILE_PATH);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            size_t pos2 = line.find("|", line.find("|") + 1);
-            size_t pos3 = line.find("|", pos2 + 1);
-            if (line.substr(pos2 + 1, pos3 - pos2 - 1) == username) {
-                file.close();
-                return true;
-            }
-        }
-        file.close();
-    }
-    return false;
-}
-bool User::changePassword(const std::string& oldPassword, const std::string& newPassword) {
-    if (hashedPassword != hashPassword(oldPassword)) {
-        return false; // Mật khẩu cũ không khớp
-    }
-
-    hashedPassword = hashPassword(newPassword);
-    std::ifstream file(FILE_PATH);
-    std::stringstream buffer;
-    if (!file.is_open()) {
-        return false;
-    }
-
-    std::string line;
-    while (std::getline(file, line)) {
-        if (!line.empty() && std::stoi(line.substr(0, line.find("|"))) == id) {
-            buffer << id << "|" << accountType << "|" << username << "|" << hashedPassword << "|"
-                   << name << "|" << dob << "|" << address << "|" << walletId << "\n";
-        } else {
-            buffer << line << "\n";
-        }
-    }
-    file.close();
-
-    std::ofstream outFile(FILE_PATH);
-    if (!outFile.is_open()) {
-        return false;
-    }
-    outFile << buffer.str();
-    outFile.close();
-    return true;
+void CustomerFrame::OnViewInfo(wxCommandEvent& event) {
+    std::string info = customer->getPersonalInfo();
+    outputText->SetValue(info);
 }
 
-std::string User::getPersonalInfo() const {
-    std::stringstream ss;
-    int balance = 0;
-
-    std::ifstream walletFile(WALLET_FILE_PATH);
-    if (walletFile.is_open()) {
-        std::string line;
-        while (std::getline(walletFile, line)) {
-            try {
-                int wid = std::stoi(line.substr(0, line.find("|")));
-                if (wid == walletId) {
-                    balance = std::stoi(line.substr(line.find("|") + 1));
-                    break;
-                }
-            } catch (const std::exception&) {
-                continue;
-            }
-        }
-        walletFile.close();
+void CustomerFrame::OnChangePassword(wxCommandEvent& event) {
+    std::string oldPassword = oldPasswordInput->GetValue().ToStdString();
+    std::string newPassword = newPasswordInput->GetValue().ToStdString();
+    if (oldPassword.empty() || newPassword.empty()) {
+        wxMessageBox("Vui long nhap day du thong tin!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    if (customer->changePassword(oldPassword, newPassword)) {
+        wxMessageBox("Doi mat khau thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        oldPasswordInput->Clear();
+        newPasswordInput->Clear();
     } else {
-        balance = -1; // Báo lỗi nếu không mở được file
-    }
-
-    ss << "ID: " << id << "\n"
-       << "Username: " << username << "\n"
-       << "Ten: " << name << "\n"
-       << "Ngay Sinh: " << dob << "\n"
-       << "Dia Chi: " << address << "\n"
-       << "So Du: " << balance;
-    return ss.str();
-}
-
-std::string User::getCustomerList() {
-    std::ifstream file(FILE_PATH);
-    std::stringstream ss;
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            size_t pos1 = line.find("|");
-            int type = std::stoi(line.substr(pos1 + 1, line.find("|", pos1 + 1) - pos1 - 1));
-            if (type == 0) { // Chỉ lấy Customer
-                ss << line << "\n";
-            }
-        }
-        file.close();
-    }
-    return ss.str();
-}
-
-void User::loadFromId(int id) {
-    std::ifstream file(FILE_PATH);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            size_t pos1 = line.find("|");
-            if (pos1 != std::string::npos && std::stoi(line.substr(0, pos1)) == id) {
-                size_t pos2 = line.find("|", pos1 + 1);
-                size_t pos3 = line.find("|", pos2 + 1);
-                size_t pos4 = line.find("|", pos3 + 1);
-                size_t pos5 = line.find("|", pos4 + 1);
-                size_t pos6 = line.find("|", pos5 + 1);
-                size_t pos7 = line.rfind("|");
-                this->id = id;
-                this->accountType = std::stoi(line.substr(pos1 + 1, pos2 - pos1 - 1));
-                this->username = line.substr(pos2 + 1, pos3 - pos2 - 1);
-                this->hashedPassword = line.substr(pos3 + 1, pos4 - pos3 - 1);
-                this->name = line.substr(pos4 + 1, pos5 - pos4 - 1);
-                this->dob = line.substr(pos5 + 1, pos6 - pos5 - 1);
-                this->address = line.substr(pos6 + 1, pos7 - pos6 - 1);
-                this->walletId = std::stoi(line.substr(pos7 + 1));
-                break;
-            }
-        }
-        file.close();
+        wxMessageBox("Mat khau cu khong dung!", "Loi", wxOK | wxICON_ERROR);
     }
 }
-bool User::registerAccount(const std::string& username, const std::string& password,
-                           const std::string& name, const std::string& dob, const std::string& address) {
-    if (isUsernameTaken(username)) return false;
 
-    std::ofstream file(FILE_PATH, std::ios::app);
-    if (!file.is_open()) return false;
-
-    std::ofstream walletFile(WALLET_FILE_PATH, std::ios::app);
-    if (!walletFile.is_open()) {
-        file.close();
-        return false;
+void CustomerFrame::OnUpdateInfo(wxCommandEvent& event) {
+    std::string name = nameInput->GetValue().ToStdString();
+    std::string dob = dobInput->GetValue().ToStdString();
+    std::string address = addressInput->GetValue().ToStdString();
+    if (name.empty() || dob.empty() || address.empty()) {
+        wxMessageBox("Vui long nhap day du thong tin!", "Loi", wxOK | wxICON_ERROR);
+        return;
     }
-
-    try {
-        int id = getMaxId() + 1;
-        int newWalletId = id + 1000; // Tạo walletId duy nhất (giả sử bắt đầu từ 1001)
-        std::string hashedPass = hashPassword(password);
-
-        // Ghi thông tin tài khoản
-        file << id << "|0|" << username << "|" << hashedPass << "|" << name << "|" << dob << "|" << address << "|" << newWalletId << "\n";
-        file.close();
-
-        // Ghi thông tin ví
-        walletFile << newWalletId << "|0\n"; // Số dư ban đầu là 0
-        walletFile.close();
-
-        return true;
-    } catch (const std::exception& e) {
-        file.close();
-        walletFile.close();
-        return false;
+    if (customer->updatePersonalInfo(name, dob, address, this)) {
+        wxMessageBox("Cap nhat thong tin thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        nameInput->Clear();
+        dobInput->Clear();
+        addressInput->Clear();
+        notebook->SetSelection(0);
+        OnViewInfo(event); // Cập nhật thông tin trong tab "Thong Tin"
+    } else {
+        wxMessageBox("Cap nhat that bai!", "Loi", wxOK | wxICON_ERROR);
     }
 }
-bool User::updatePersonalInfo(const std::string& name, const std::string& dob, const std::string& address, wxWindow* parent) {
-    std::string otp = generateOTP();
-    wxString otpMsg = wxString::Format("Ma OTP: %s\nThay doi: Ten: %s, Ngay Sinh: %s, Dia Chi: %s",
-                                       otp.c_str(), name.c_str(), dob.c_str(), address.c_str());
-    wxMessageBox(otpMsg, "Xac Nhan OTP", wxOK | wxICON_INFORMATION, parent);
 
-    wxTextEntryDialog dialog(parent, "Nhap ma OTP:", "Xac Nhan Cap Nhat");
-    if (dialog.ShowModal() == wxID_OK && dialog.GetValue().ToStdString() == otp) {
-        this->name = name;
-        this->dob = dob;
-        this->address = address;
-
-        std::ifstream file(FILE_PATH);
-        std::stringstream buffer;
-        if (!file.is_open()) {
-            return false;
-        }
-
-        std::string line;
-        while (std::getline(file, line)) {
-            if (!line.empty() && std::stoi(line.substr(0, line.find("|"))) == id) {
-                buffer << id << "|" << accountType << "|" << username << "|" << hashedPassword << "|"
-                       << name << "|" << dob << "|" << address << "|" << walletId << "\n";
-            } else {
-                buffer << line << "\n";
-            }
-        }
-        file.close();
-
-        std::ofstream outFile(FILE_PATH);
-        if (!outFile.is_open()) {
-            return false;
-        }
-        outFile << buffer.str();
-        outFile.close();
-        return true;
+void CustomerFrame::OnTransferPoints(wxCommandEvent& event) {
+    std::string receiverUsername = receiverUsernameInput->GetValue().ToStdString();
+    long points;
+    if (!transferPointsInput->GetValue().ToLong(&points) || receiverUsername.empty() || points <= 0) {
+        wxMessageBox("Vui long nhap day du thong tin va so diem hop le!", "Loi", wxOK | wxICON_ERROR);
+        return;
     }
-    return false;
+    if (customer->transferPoints(receiverUsername, (int)points, this)) {
+        wxMessageBox("Chuyen diem thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        receiverUsernameInput->Clear();
+        transferPointsInput->Clear();
+        notebook->SetSelection(0);
+        OnViewInfo(event); // Cập nhật thông tin sau khi chuyển điểm
+    } else {
+        wxMessageBox("Chuyen diem that bai! Kiem tra username hoac so diem.", "Loi", wxOK | wxICON_ERROR);
+    }
 }
 
-std::string User::generateRandomPassword() {
-    std::srand(time(0));
-    std::string pass = "pass" + std::to_string(rand() % 10000);
-    return pass;
+void CustomerFrame::OnSearchCustomer(wxCommandEvent& event) {
+    std::string username = searchUsernameInput->GetValue().ToStdString();
+    if (username.empty()) {
+        wxMessageBox("Vui long nhap username!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    std::string output;
+    if (customer->findCustomerByUsername(username, output)) {
+        notebook->SetSelection(0);
+        outputText->SetValue(output);
+    } else {
+        wxMessageBox(output.empty() ? "Khong tim thay khach hang!" : output, "Ket Qua", wxOK | wxICON_INFORMATION);
+    }
+}
+
+void CustomerFrame::OnViewHistory(wxCommandEvent& event) {
+    std::string history = customer->getTransactionHistory();
+    if (history.empty()) {
+        historyText->SetValue("Khong co giao dich nao.");
+    } else {
+        historyText->SetValue(history);
+    }
+}
+
+void CustomerFrame::OnLogout(wxCommandEvent& event) {
+    if (customer) {
+        delete customer;
+        customer = nullptr;
+    }
+    LoginFrame* loginFrame = new LoginFrame("Dang Nhap");
+    loginFrame->Show(true);
+    this->Hide();
+}
+
+void CustomerFrame::OnClose(wxCloseEvent& event) {
+    if (customer) {
+        delete customer;
+        customer = nullptr;
+    }
+    LoginFrame* loginFrame = new LoginFrame("Dang Nhap");
+    loginFrame->Show(true);
+    Destroy();
 }
