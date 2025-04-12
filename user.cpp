@@ -248,3 +248,48 @@ bool User::registerAccount(const std::string& username, const std::string& passw
         return false;
     }
 }
+bool User::updatePersonalInfo(const std::string& name, const std::string& dob, const std::string& address, wxWindow* parent) {
+    std::string otp = generateOTP();
+    wxString otpMsg = wxString::Format("Ma OTP: %s\nThay doi: Ten: %s, Ngay Sinh: %s, Dia Chi: %s",
+                                       otp.c_str(), name.c_str(), dob.c_str(), address.c_str());
+    wxMessageBox(otpMsg, "Xac Nhan OTP", wxOK | wxICON_INFORMATION, parent);
+
+    wxTextEntryDialog dialog(parent, "Nhap ma OTP:", "Xac Nhan Cap Nhat");
+    if (dialog.ShowModal() == wxID_OK && dialog.GetValue().ToStdString() == otp) {
+        this->name = name;
+        this->dob = dob;
+        this->address = address;
+
+        std::ifstream file(FILE_PATH);
+        std::stringstream buffer;
+        if (!file.is_open()) {
+            return false;
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            if (!line.empty() && std::stoi(line.substr(0, line.find("|"))) == id) {
+                buffer << id << "|" << accountType << "|" << username << "|" << hashedPassword << "|"
+                       << name << "|" << dob << "|" << address << "|" << walletId << "\n";
+            } else {
+                buffer << line << "\n";
+            }
+        }
+        file.close();
+
+        std::ofstream outFile(FILE_PATH);
+        if (!outFile.is_open()) {
+            return false;
+        }
+        outFile << buffer.str();
+        outFile.close();
+        return true;
+    }
+    return false;
+}
+
+std::string User::generateRandomPassword() {
+    std::srand(time(0));
+    std::string pass = "pass" + std::to_string(rand() % 10000);
+    return pass;
+}
