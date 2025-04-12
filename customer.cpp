@@ -51,6 +51,8 @@ std::string Customer::getTransactionHistory() const {
             }
         }
         file.close();
+    }
+}
 bool Customer::transferPoints(const std::string& receiverUsername, int points, wxWindow* parent) {
     // 1. Tìm và mở ví A (ví của người gửi)
     Wallet* senderWallet = Wallet::loadFromFile(this->walletId);
