@@ -62,25 +62,7 @@ ManagerFrame::ManagerFrame(const wxString& title, int userId)
     addCustomerPanel->SetSizer(addCustomerSizer);
     notebook->AddPage(addCustomerPanel, "Tao Tai Khoan");
 
-    // Tab 4: Add Points (dùng username)
-    wxPanel* addPointsPanel = new wxPanel(notebook);
-    wxBoxSizer* addPointsSizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* pointsInputSizer = new wxBoxSizer(wxHORIZONTAL);
-    pointsInputSizer->Add(new wxStaticText(addPointsPanel, wxID_ANY, "Username Khach Hang:"), 
-                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    customerIdInput = new wxTextCtrl(addPointsPanel, wxID_ANY);
-    pointsInputSizer->Add(customerIdInput, 1, wxALL | wxEXPAND, 5);
-    pointsInputSizer->Add(new wxStaticText(addPointsPanel, wxID_ANY, "Diem Them:"), 
-                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    pointsInput = new wxTextCtrl(addPointsPanel, wxID_ANY);
-    pointsInputSizer->Add(pointsInput, 1, wxALL | wxEXPAND, 5);
-    wxButton* addPointsBtn = new wxButton(addPointsPanel, wxID_ANY, "Them Diem");
-    addPointsSizer->Add(pointsInputSizer, 0, wxEXPAND | wxALL, 5);
-    addPointsSizer->Add(addPointsBtn, 0, wxALL | wxALIGN_CENTER, 5);
-    addPointsPanel->SetSizer(addPointsSizer);
-    notebook->AddPage(addPointsPanel, "Them Diem");
-
-    // Tab 5: Update User Info (bỏ ID, không cần điền hết)
+    // Tab 4: Update User Info (bỏ ID, không cần điền hết)
     wxPanel* updatePanel = new wxPanel(notebook);
     wxBoxSizer* updateSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* updateInputSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -103,7 +85,25 @@ ManagerFrame::ManagerFrame(const wxString& title, int userId)
     updateSizer->Add(updateBtn, 0, wxALL | wxALIGN_CENTER, 5);
     updatePanel->SetSizer(updateSizer);
     notebook->AddPage(updatePanel, "Cap Nhat Thong Tin");
-
+        
+    // Tab 5: Add Points (dùng username)
+    wxPanel* addPointsPanel = new wxPanel(notebook);
+    wxBoxSizer* addPointsSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* pointsInputSizer = new wxBoxSizer(wxHORIZONTAL);
+    pointsInputSizer->Add(new wxStaticText(addPointsPanel, wxID_ANY, "Username Khach Hang:"), 
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    customerIdInput = new wxTextCtrl(addPointsPanel, wxID_ANY);
+    pointsInputSizer->Add(customerIdInput, 1, wxALL | wxEXPAND, 5);
+    pointsInputSizer->Add(new wxStaticText(addPointsPanel, wxID_ANY, "Diem Them:"), 
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    pointsInput = new wxTextCtrl(addPointsPanel, wxID_ANY);
+    pointsInputSizer->Add(pointsInput, 1, wxALL | wxEXPAND, 5);
+    wxButton* addPointsBtn = new wxButton(addPointsPanel, wxID_ANY, "Them Diem");
+    addPointsSizer->Add(pointsInputSizer, 0, wxEXPAND | wxALL, 5);
+    addPointsSizer->Add(addPointsBtn, 0, wxALL | wxALIGN_CENTER, 5);
+    addPointsPanel->SetSizer(addPointsSizer);
+    notebook->AddPage(addPointsPanel, "Them Diem");
+        
     // Tab 6: Transaction History
     wxPanel* historyPanel = new wxPanel(notebook);
     wxBoxSizer* historySizer = new wxBoxSizer(wxVERTICAL);
