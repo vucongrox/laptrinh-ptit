@@ -99,3 +99,43 @@ std::string Manager::getTransactionHistory() {
     }
     return ss.str();
 }
+bool Manager::addPointsToUser(int userWalletId, int points) {
+    if (points <= 0) {
+        return false; // Điểm phải dương
+    }
+
+    Wallet* totalWallet = Wallet::loadFromFile(0); // Ví tổng có walletId = 0
+    if (!totalWallet || totalWallet->getBalance() < points) {
+        delete totalWallet;
+        return false;
+    }
+
+    Wallet* userWallet = Wallet::loadFromFile(userWalletId);
+    if (!userWallet) {
+        delete totalWallet;
+        return false;
+    }
+
+    try {
+        totalWallet->deductPoints(points);
+        userWallet->addPoints(points);
+
+        // Ghi log giao dịch
+        std::ofstream logFile("E:/tai_lieu/c++/transactions.txt", std::ios::app);
+        if (logFile.is_open()) {
+            time_t now = time(0);
+            std::string timestamp = std::ctime(&now);
+            timestamp.pop_back(); // Xóa ký tự xuống dòng
+            logFile << 0 << "|" << userWalletId << "|" << points << "|" << timestamp << "|success\n";
+            logFile.close();
+        }
+    } catch (const std::exception& e) {
+        delete totalWallet;
+        delete userWallet;
+        return false;
+    }
+
+    delete totalWallet;
+    delete userWallet;
+    return true;
+}
