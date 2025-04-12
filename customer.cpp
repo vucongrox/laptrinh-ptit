@@ -52,6 +52,7 @@ std::string Customer::getTransactionHistory() const {
         }
         file.close();
     }
+    return ss.str();
 }
 bool Customer::transferPoints(const std::string& receiverUsername, int points, wxWindow* parent) {
     // 1. Tìm và mở ví A (ví của người gửi)
@@ -140,7 +141,4 @@ bool Customer::transferPoints(const std::string& receiverUsername, int points, w
     delete senderWallet;
     delete receiverWallet;
     return true;
-}
-    }
-    return ss.str();
 }
