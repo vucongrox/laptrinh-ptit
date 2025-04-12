@@ -123,6 +123,114 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     searchBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnSearchCustomer, this);
     viewHistoryBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnViewHistory, this);
     logoutBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnLogout, this);
+
+    
+CustomerFrame::~CustomerFrame() {
+    delete customer;
+}
+
+void CustomerFrame::OnViewInfo(wxCommandEvent& event) {
+    std::string info = customer->getPersonalInfo();
+    outputText->SetValue(info);
+}
+
+void CustomerFrame::OnChangePassword(wxCommandEvent& event) {
+    std::string oldPassword = oldPasswordInput->GetValue().ToStdString();
+    std::string newPassword = newPasswordInput->GetValue().ToStdString();
+    if (oldPassword.empty() || newPassword.empty()) {
+        wxMessageBox("Vui long nhap day du thong tin!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    if (customer->changePassword(oldPassword, newPassword)) {
+        wxMessageBox("Doi mat khau thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        oldPasswordInput->Clear();
+        newPasswordInput->Clear();
+    } else {
+        wxMessageBox("Mat khau cu khong dung!", "Loi", wxOK | wxICON_ERROR);
+    }
+}
+
+void CustomerFrame::OnUpdateInfo(wxCommandEvent& event) {
+    std::string name = nameInput->GetValue().ToStdString();
+    std::string dob = dobInput->GetValue().ToStdString();
+    std::string address = addressInput->GetValue().ToStdString();
+    if (name.empty() || dob.empty() || address.empty()) {
+        wxMessageBox("Vui long nhap day du thong tin!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    if (customer->updatePersonalInfo(name, dob, address, this)) {
+        wxMessageBox("Cap nhat thong tin thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        nameInput->Clear();
+        dobInput->Clear();
+        addressInput->Clear();
+        notebook->SetSelection(0);
+        OnViewInfo(event); // Cập nhật thông tin trong tab "Thong Tin"
+    } else {
+        wxMessageBox("Cap nhat that bai!", "Loi", wxOK | wxICON_ERROR);
+    }
+}
+
+void CustomerFrame::OnTransferPoints(wxCommandEvent& event) {
+    std::string receiverUsername = receiverUsernameInput->GetValue().ToStdString();
+    long points;
+    if (!transferPointsInput->GetValue().ToLong(&points) || receiverUsername.empty() || points <= 0) {
+        wxMessageBox("Vui long nhap day du thong tin va so diem hop le!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    if (customer->transferPoints(receiverUsername, (int)points, this)) {
+        wxMessageBox("Chuyen diem thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        receiverUsernameInput->Clear();
+        transferPointsInput->Clear();
+        notebook->SetSelection(0);
+        OnViewInfo(event); // Cập nhật thông tin sau khi chuyển điểm
+    } else {
+        wxMessageBox("Chuyen diem that bai! Kiem tra username hoac so diem.", "Loi", wxOK | wxICON_ERROR);
+    }
+}
+
+void CustomerFrame::OnSearchCustomer(wxCommandEvent& event) {
+    std::string username = searchUsernameInput->GetValue().ToStdString();
+    if (username.empty()) {
+        wxMessageBox("Vui long nhap username!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    std::string output;
+    if (customer->findCustomerByUsername(username, output)) {
+        notebook->SetSelection(0);
+        outputText->SetValue(output);
+    } else {
+        wxMessageBox(output.empty() ? "Khong tim thay khach hang!" : output, "Ket Qua", wxOK | wxICON_INFORMATION);
+    }
+}
+
+void CustomerFrame::OnViewHistory(wxCommandEvent& event) {
+    std::string history = customer->getTransactionHistory();
+    if (history.empty()) {
+        historyText->SetValue("Khong co giao dich nao.");
+    } else {
+        historyText->SetValue(history);
+    }
+}
+
+void CustomerFrame::OnLogout(wxCommandEvent& event) {
+    if (customer) {
+        delete customer;
+        customer = nullptr;
+    }
+    LoginFrame* loginFrame = new LoginFrame("Dang Nhap");
+    loginFrame->Show(true);
+    this->Hide();
+}
+
+void CustomerFrame::OnClose(wxCloseEvent& event) {
+    if (customer) {
+        delete customer;
+        customer = nullptr;
+    }
+    LoginFrame* loginFrame = new LoginFrame("Dang Nhap");
+    loginFrame->Show(true);
+    Destroy();
+}
     Bind(wxEVT_CLOSE_WINDOW, &CustomerFrame::OnClose, this);
 
     Centre(); 
