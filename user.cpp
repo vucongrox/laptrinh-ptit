@@ -188,40 +188,6 @@ std::string User::getCustomerList() {
     return ss.str();
 }
 
-bool User::registerAccount(const std::string& username, const std::string& password,
-                           const std::string& name, const std::string& dob, const std::string& address) {
-    if (isUsernameTaken(username)) return false;
-
-    std::ofstream file(FILE_PATH, std::ios::app);
-    if (!file.is_open()) return false;
-
-    std::ofstream walletFile(WALLET_FILE_PATH, std::ios::app);
-    if (!walletFile.is_open()) {
-        file.close();
-        return false;
-    }
-
-    try {
-        int id = getMaxId() + 1;
-        int newWalletId = id + 1000; // Tạo walletId duy nhất (giả sử bắt đầu từ 1001)
-        std::string hashedPass = hashPassword(password);
-
-        // Ghi thông tin tài khoản
-        file << id << "|0|" << username << "|" << hashedPass << "|" << name << "|" << dob << "|" << address << "|" << newWalletId << "\n";
-        file.close();
-
-        // Ghi thông tin ví
-        walletFile << newWalletId << "|0\n"; // Số dư ban đầu là 0
-        walletFile.close();
-
-        return true;
-    } catch (const std::exception& e) {
-        file.close();
-        walletFile.close();
-        return false;
-    }
-}
-
 void User::loadFromId(int id) {
     std::ifstream file(FILE_PATH);
     if (file.is_open()) {
