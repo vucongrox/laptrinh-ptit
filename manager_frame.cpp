@@ -152,3 +152,201 @@ ManagerFrame::ManagerFrame(const wxString& title, int userId)
 ManagerFrame::~ManagerFrame() {
     delete manager;
 }
+
+void ManagerFrame::OnViewInfo(wxCommandEvent& event) {
+    if (manager->getId() == 0) {
+        wxMessageBox("Khong the tai thong tin tai khoan!", "Loi", wxOK | wxICON_ERROR);
+        OnLogout(event);
+        return;
+    }
+    infoOutputText->SetValue(manager->getPersonalInfo());
+}
+
+void ManagerFrame::OnViewCustomers(wxCommandEvent& event) {
+    std::ifstream file("E:/tai_lieu/c++/taikhoan.txt");
+    std::stringstream ss;
+    ss << "Username\tNgay Sinh\tDia Chi\tTong Diem\n";
+    ss << "------------------------------------------------\n";
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            size_t pos1 = line.find("|");
+            int type = std::stoi(line.substr(pos1 + 1, line.find("|", pos1 + 1) - pos1 - 1));
+            if (type == 0) { // Chỉ lấy Customer
+                size_t pos2 = line.find("|", pos1 + 1);
+                size_t pos3 = line.find("|", pos2 + 1);
+                size_t pos4 = line.find("|", pos3 + 1);
+                size_t pos5 = line.find("|", pos4 + 1);
+                size_t pos6 = line.find("|", pos5 + 1);
+                size_t pos7 = line.rfind("|");
+                std::string username = line.substr(pos2 + 1, pos3 - pos2 - 1);
+                std::string dob = line.substr(pos5 + 1, pos6 - pos5 - 1);
+                std::string address = line.substr(pos6 + 1, pos7 - pos6 - 1);
+                int walletId = std::stoi(line.substr(pos7 + 1));
+
+                // Lấy tổng điểm từ wallets.txt
+                Wallet* wallet = Wallet::loadFromFile(walletId);
+                int balance = wallet ? wallet->getBalance() : 0;
+                delete wallet;
+
+                ss << username << "\t" << dob << "\t" << address << "\t" << balance << "\n";
+            }
+        }
+        file.close();
+    }
+    customersOutputText->SetValue(ss.str());
+}
+
+void ManagerFrame::OnAddCustomer(wxCommandEvent& event) {
+    std::string username = usernameInput->GetValue().ToStdString();
+    std::string password = passwordInput->GetValue().ToStdString();
+    std::string dob = dobInput->GetValue().ToStdString();
+    std::string address = addressInput->GetValue().ToStdString();
+    if (username.empty() || password.empty() || dob.empty() || address.empty()) {
+        wxMessageBox("Vui long nhap day du thong tin!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    if (manager->createUser(username, password, "", dob, address)) {
+        wxMessageBox("Them nguoi dung thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        usernameInput->Clear();
+        passwordInput->Clear();
+        dobInput->Clear();
+        addressInput->Clear();
+        notebook->SetSelection(1);
+        OnViewCustomers(event);
+    } else {
+        wxMessageBox("Them that bai! Username co the da ton tai.", "Loi", wxOK | wxICON_ERROR);
+    }
+}
+
+void ManagerFrame::OnAddPoints(wxCommandEvent& event) {
+    std::string username = customerIdInput->GetValue().ToStdString();
+    long points;
+    if (username.empty() || !pointsInput->GetValue().ToLong(&points) || points <= 0) {
+        wxMessageBox("Vui long nhap username va so diem hop le!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    // Tìm walletId từ username
+    std::ifstream file("E:/tai_lieu/c++/taikhoan.txt");
+    int walletId = -1;
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            size_t pos2 = line.find("|", line.find("|") + 1);
+            size_t pos3 = line.find("|", pos2 + 1);
+            std::string fileUsername = line.substr(pos2 + 1, pos3 - pos2 - 1);
+            if (fileUsername == username) {
+                walletId = std::stoi(line.substr(line.rfind("|") + 1));
+                break;
+            }
+        }
+        file.close();
+    }
+
+    if (walletId == -1) {
+        wxMessageBox("Khong tim thay khach hang voi username nay!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    if (manager->addPointsToUser(walletId, (int)points)) {
+        wxMessageBox("Them diem thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        customerIdInput->Clear();
+        pointsInput->Clear();
+        notebook->SetSelection(5);
+        OnViewHistory(event);
+    } else {
+        wxMessageBox("Them diem that bai! Kiem tra so diem trong vi tong.", "Loi", wxOK | wxICON_ERROR);
+    }
+}
+
+void ManagerFrame::OnUpdateUserInfo(wxCommandEvent& event) {
+    std::string username = updateIdInput->GetValue().ToStdString(); // Dùng username thay vì ID
+    std::string dob = updateDobInput->GetValue().ToStdString();
+    std::string address = updateAddressInput->GetValue().ToStdString();
+    if (username.empty()) {
+        wxMessageBox("Vui long nhap username!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+    // Tìm userId từ username
+    std::ifstream file("E:/tai_lieu/c++/taikhoan.txt");
+    int userId = -1;
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            size_t pos2 = line.find("|", line.find("|") + 1);
+            size_t pos3 = line.find("|", pos2 + 1);
+            std::string fileUsername = line.substr(pos2 + 1, pos3 - pos2 - 1);
+            if (fileUsername == username) {
+                userId = std::stoi(line.substr(0, pos2));
+                break;
+            }
+        }
+        file.close();
+    }
+
+    if (userId == -1) {
+        wxMessageBox("Khong tim thay khach hang voi username nay!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    if (manager->updateUserInfo(userId, "", dob, address, this)) {
+        wxMessageBox("Cap nhat thong tin thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+        updateIdInput->Clear();
+        updateDobInput->Clear();
+        updateAddressInput->Clear();
+        notebook->SetSelection(1);
+        OnViewCustomers(event);
+    } else {
+        wxMessageBox("Cap nhat that bai!", "Loi", wxOK | wxICON_ERROR);
+    }
+}
+
+void ManagerFrame::OnViewHistory(wxCommandEvent& event) {
+    std::string history = manager->getTransactionHistory();
+    if (history.empty()) {
+        historyText->SetValue("Khong co giao dich nao.");
+    } else {
+        historyText->SetValue(history);
+    }
+}
+
+void ManagerFrame::OnAddTotalPoints(wxCommandEvent& event) {
+    long points;
+    if (!totalPointsInput->GetValue().ToLong(&points) || points <= 0) {
+        wxMessageBox("Vui long nhap so diem hop le!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    Wallet* totalWallet = Wallet::loadFromFile(0); // Ví tổng
+    if (!totalWallet) {
+        wxMessageBox("Khong the tai vi tong!", "Loi", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    totalWallet->addPoints((int)points);
+    delete totalWallet;
+
+    wxMessageBox("Them diem vao vi tong thanh cong!", "Thanh cong", wxOK | wxICON_INFORMATION);
+    totalPointsInput->Clear();
+}
+
+void ManagerFrame::OnLogout(wxCommandEvent& event) {
+    if (manager) {
+        delete manager;
+        manager = nullptr;
+    }
+    LoginFrame* loginFrame = new LoginFrame("Dang Nhap");
+    loginFrame->Show(true);
+    this->Hide();
+}
+
+void ManagerFrame::OnClose(wxCloseEvent& event) {
+    if (manager) {
+        delete manager;
+        manager = nullptr;
+    }
+    LoginFrame* loginFrame = new LoginFrame("Dang Nhap");
+    loginFrame->Show(true);
+    Destroy();
+}
