@@ -188,33 +188,6 @@ std::string User::getCustomerList() {
     return ss.str();
 }
 
-void User::loadFromId(int id) {
-    std::ifstream file(FILE_PATH);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            size_t pos1 = line.find("|");
-            if (pos1 != std::string::npos && std::stoi(line.substr(0, pos1)) == id) {
-                size_t pos2 = line.find("|", pos1 + 1);
-                size_t pos3 = line.find("|", pos2 + 1);
-                size_t pos4 = line.find("|", pos3 + 1);
-                size_t pos5 = line.find("|", pos4 + 1);
-                size_t pos6 = line.find("|", pos5 + 1);
-                size_t pos7 = line.rfind("|");
-                this->id = id;
-                this->accountType = std::stoi(line.substr(pos1 + 1, pos2 - pos1 - 1));
-                this->username = line.substr(pos2 + 1, pos3 - pos2 - 1);
-                this->hashedPassword = line.substr(pos3 + 1, pos4 - pos3 - 1);
-                this->name = line.substr(pos4 + 1, pos5 - pos4 - 1);
-                this->dob = line.substr(pos5 + 1, pos6 - pos5 - 1);
-                this->address = line.substr(pos6 + 1, pos7 - pos6 - 1);
-                this->walletId = std::stoi(line.substr(pos7 + 1));
-                break;
-            }
-        }
-        file.close();
-    }
-}
 bool User::registerAccount(const std::string& username, const std::string& password,
                            const std::string& name, const std::string& dob, const std::string& address) {
     if (isUsernameTaken(username)) return false;
