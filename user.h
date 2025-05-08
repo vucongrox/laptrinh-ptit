@@ -6,6 +6,7 @@
 #include <fstream>
 #include <ctime>
 #include "wallet.h"
+#include "otp.h" // Thêm include để sử dụng lớp OTP
 
 class User {
 protected:
@@ -18,12 +19,13 @@ protected:
     std::string name;
     std::string dob;
     std::string address;
-	int walletId; 
+    int walletId; 
+    time_t otpGeneratedTime; // Biến lưu thời gian tạo OTP
 
     static int getMaxId();
     static std::string hashPassword(const std::string& password);
     static bool isUsernameTaken(const std::string& username);
-    static std::string generateOTP();
+    std::string generateOTP(); // Loại bỏ từ khóa static vì cần truy cập biến instance
 
 public:
     User();
@@ -41,7 +43,8 @@ public:
     bool updatePersonalInfo(const std::string& name, const std::string& dob, const std::string& address, wxWindow* parent);
     int getId() const { return id; }
     int getAccountType() const { return accountType; }
-	int getWalletId() const { return walletId; }
+    int getWalletId() const { return walletId; }
+    time_t getOtpGeneratedTime() const { return otpGeneratedTime; } // Getter để truy cập thời gian tạo OTP
     static std::string generateRandomPassword();
 };
 
