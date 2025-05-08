@@ -37,21 +37,77 @@ namnh1988          | Thiết kế giao diện quản lý (Manager); phát triể
 #### Mã hóa mật khẩu
 - Mật khẩu của người dùng được băm trước khi lưu trữ để đảm bảo an toàn.
 - Sử dụng hàm băm (SHA-256) để mã hóa mật khẩu.
-- Mật khẩu băm được lưu trong tệp `taikhoan.txt` mà không kèm muối.
+- Mật khẩu băm được lưu trong tệp `taikhoan.txt`.
   - Ví dụ: Mật khẩu "password123" được băm thành "2da1eed431f8991b".
 
 #### Xác thực OTP
-- **Sinh mã OTP**: Sử dụng thuật toán TOTP (Time-based One-Time Password) để tạo mã OTP cho các thao tác quan trọng (cập nhật thông tin, giao dịch chuyển điểm).
-  - Mã OTP được tạo dựa trên thời gian hiện tại và khóa bí mật cố định ("MYAPPSECRET12345").
-  - Sử dụng HMAC-SHA1 để tính toán giá trị băm, sau đó rút gọn thành mã số 6 chữ số.
+- **Sinh mã OTP**:
+  - Sử dụng thuật toán **TOTP (Time-based One-Time Password)** để tạo mã OTP cho các thao tác quan trọng như cập nhật thông tin và giao dịch chuyển điểm.
+  - **Thuật toán TOTP**:
+    - TOTP là một biến thể của HOTP (HMAC-based One-Time Password), dựa trên thời gian thay vì số đếm.
+    - Công thức:  
+      ```
+      TOTP = HMAC-SHA1(secret, T) mod 10^digits
+      ```
+      Trong đó:
+      - `secret`: Khóa bí mật cố định ("MYAPPSECRET12345").
+      - `T`: Số bước thời gian, tính bằng cách chia thời gian hiện tại (Unix timestamp) cho khoảng thời gian bước (period, mặc định 30 giây).
+      - `digits`: Số chữ số của mã OTP (mặc định 6 chữ số).
+    - Sau khi tính HMAC-SHA1, giá trị băm được rút gọn bằng kỹ thuật **Dynamic Truncation** (lấy 4 byte từ vị trí offset và chuyển thành số nguyên), rồi lấy modulo để tạo mã OTP.
+  - **Cách mã hoạt động**:
+    - Lưu thời gian tạo OTP để kiểm tra thời gian hết hạn:  
+      ```cpp
+      otpGeneratedTime = time(nullptr);
+      ```
+    - Lấy thời gian hiện tại và tính số bước thời gian `T`:  
+      ```cpp
+      uint64_t time_step = static_cast<uint64_t>(otpGeneratedTime) / period;
+      ```
+    - Chuyển `time_step` thành dạng binary (big-endian) để làm đầu vào cho HMAC-SHA1:  
+      ```cpp
+      std::vector<uint8_t> time_bytes(8);
+      for (int i = 7; i >= 0; --i) {
+          time_bytes[i] = static_cast<uint8_t>(time_step & 0xFF);
+          time_step >>= 8;
+      }
+      ```
+    - Tính HMAC-SHA1 với khóa bí mật và `time_bytes`:  
+      ```cpp
+      std::vector<uint8_t> hmac_result = hmac_sha1(secret, time_bytes);
+      ```
+    - Áp dụng Dynamic Truncation để rút gọn giá trị băm:  
+      - Lấy offset từ byte cuối của giá trị băm:  
+        ```cpp
+        int offset = hmac_result[hmac_result.size() - 1] & 0x0F;
+        ```
+      - Lấy 4 byte từ vị trí offset và chuyển thành số nguyên 31-bit:  
+        ```cpp
+        uint32_t binary_code = 
+            ((hmac_result[offset] & 0x7F) << 24) |
+            ((hmac_result[offset + 1] & 0xFF) << 16) |
+            ((hmac_result[offset + 2] & 0xFF) << 8) |
+            (hmac_result[offset + 3] & 0xFF);
+        ```
+    - Rút gọn thành mã 6 chữ số:  
+      ```cpp
+      binary_code = binary_code % static_cast<uint32_t>(std::pow(10, digits));
+      ```
+    - Định dạng mã OTP với số 0 đằng trước nếu cần:  
+      ```cpp
+      std::string otp = std::to_string(binary_code);
+      while (otp.length() < digits) {
+          otp = "0" + otp;
+      }
+      ```
   - Mã OTP có thời gian hết hạn là 30 giây.
-- **Hiển thị OTP**: Mã OTP được hiển thị trên giao diện thông qua hộp thoại `wxMessageBox` (giả lập gửi OTP).
+- **Hiển thị OTP**:
+  - Mã OTP được hiển thị trên giao diện thông qua hộp thoại `wxMessageBox` (giả lập gửi OTP cho người dùng).
 - **Kiểm tra OTP**:
   - Người dùng nhập mã OTP vào hộp thoại `wxTextEntryDialog`.
-  - Hệ thống kiểm tra:
+  - Hệ thống kiểm tra tính hợp lệ của mã OTP:
     - So sánh mã OTP nhập vào với mã đã tạo.
-    - Kiểm tra thời gian hết hạn (30 giây kể từ khi mã được tạo).
-  - Nếu OTP không khớp hoặc hết hạn, thao tác sẽ bị hủy.
+    - Kiểm tra thời gian hết hạn (30 giây kể từ khi mã được tạo, dựa trên biến `otpGeneratedTime`).
+  - Nếu OTP không khớp hoặc đã hết hạn, thao tác (cập nhật thông tin, giao dịch) sẽ bị hủy và thông báo lỗi được hiển thị.
 
 #### Phân quyền người dùng
 - **Người dùng thông thường (Customer)**:
@@ -99,26 +155,10 @@ namnh1988          | Thiết kế giao diện quản lý (Manager); phát triể
   - Sao lưu định kỳ mỗi 6 phút (để kiểm tra, có thể điều chỉnh lại sau).
   - Bản sao lưu được lưu vào thư mục `E:/tai_lieu/c++/backups` với nhãn thời gian (ví dụ: `taikhoan_backup_1696112400.txt`).
   - Giữ tối đa 7 bản sao gần nhất cho mỗi loại tệp để tiết kiệm không gian.
-- **Phục hồi dữ liệu**:
-  - Quản lý (Manager) có thể khôi phục dữ liệu từ bản sao lưu mới nhất thông qua giao diện (tab "Sao Luu va Phuc Hoi", nút "Phuc Hoi Du Lieu").
-  - Quy trình phục hồi: Sao chép bản sao lưu gần nhất vào vị trí tệp gốc.
 
 ---
 
-## Hướng dẫn kiểm tra sao lưu
-1. **Sao lưu định kỳ**:
-   - Chạy ứng dụng và đợi 6 phút để kiểm tra bản sao lưu tự động.
-   - Kiểm tra thư mục `E:/tai_lieu/c++/backups` để xem các tệp sao lưu (ví dụ: `taikhoan_backup_1696112400.txt`).
 
-2. **Sao lưu theo sự kiện**:
-   - Thực hiện một thao tác thay đổi dữ liệu (đăng ký người dùng, cập nhật thông tin, chuyển điểm).
-   - Kiểm tra ngay thư mục sao lưu để xác nhận bản sao mới được tạo.
-
-3. **Phục hồi dữ liệu**:
-   - Xóa hoặc sửa lỗi một tệp gốc (như `taikhoan.txt`).
-   - Vào tab "Sao Luu va Phuc Hoi" trong giao diện Manager, nhấn nút "Phuc Hoi Du Lieu" để khôi phục.
-
----
 ## Yêu cầu hệ thống
 - **Hệ điều hành**: Windows (đường dẫn sử dụng `E:/tai_lieu/c++`).
 - **Thư viện**:
@@ -163,7 +203,7 @@ namnh1988          | Thiết kế giao diện quản lý (Manager); phát triể
     - wallet.h: Header định nghĩa lớp ví.
 ## 2. Thư viện: 
     - **wxWidgets**: Bắt buộc, vì các tệp như `customer_frame.cpp`, `manager_frame.cpp` cho thấy dự án dùng giao diện wxWidgets.Tải từ https://www.wxwidgets.org/downloads/, chọn phiên bản cho Windows.
-    - **OpenSSL**: Tùy chọn, vì dự án có thể băm mật khẩu (theo mô tả OTP và bảo mật trước).
+    - **OpenSSL**: Bắt buộc, vì dự án có thể băm mật khẩu.
     - **C++ Standard Library**: Bao gồm các thành phần chuẩn như `<filesystem>`, `<random>` (hỗ trợ C++17).
 
 
@@ -187,32 +227,74 @@ Vào `Project` → `Project Options...` để thiết lập các cấu hình sau
 
 ---
 
-####  Tab **Parameters**
+## Hướng dẫn cài đặt
+1. **Cài đặt thư viện**:
+   - **wxWidgets**:
+     - Tải và cài đặt wxWidgets từ trang chính thức (https://www.wxwidgets.org/downloads/).
+     - Đảm bảo bạn đã biên dịch wxWidgets theo hướng dẫn trên trang web (ví dụ: dùng MinGW hoặc MSVC).
+   - **OpenSSL**:
+     - Tải OpenSSL từ trang chính thức hoặc kho lưu trữ (https://www.openssl.org/source/).
+     - Biên dịch OpenSSL với MinGW:
+       - Giải nén mã nguồn OpenSSL (ví dụ: vào thư mục `E:\openssl-master`).
+       - Mở terminal MinGW, di chuyển vào thư mục OpenSSL và chạy:
+         ```
+         ./config --prefix=E:/openssl-master/openssl-master --openssldir=E:/openssl-master/openssl-master/ssl
+         make
+         make install
+         ```
+       - Sau khi cài đặt, thư viện OpenSSL sẽ nằm trong `E:/openssl-master/openssl-master/lib/mingw/x64` và các header trong `E:/openssl-master/openssl-master/include`.
 
-#####  C++ Compiler
+2. **Cấu hình thư viện và biên dịch**:
+   - Vào `Project` → `Project Options...` để thiết lập các cấu hình sau:
+   
+   #### Cài đặt thư viện wxWidgets
+   - **Tab Parameters**:
+     - **C++ Compiler**:
+       Thêm vào ô `Compiler`:
+       ```
+       -D__WXDEBUG__ -D__WXMSW__ -g -O0 -mthreads -Wall
+       ```
+     - **C++ Linker**:
+       Thêm vào ô `Linker`:
+       ```
+       -mthreads -Wl,--subsystem,windows -mwindows -lwxjpeg -lwxpng -lwxzlib -lrpcrt4 -loleaut32 -lole32 -luuid -lwinspool -lwinmm -lshell32 -lcomctl32 -lcomdlg32 -ladvapi32 -lwsock32 -lgdi32 -lwxtiff -lwxmsw32u_core -lwxbase32u -lwxexpat
+       ```
+   - **Tab Directories**:
+     - **Library Directories**:
+       ```
+       E:\libwx\wxWidgets-3.2.0\lib\gcc1030TDM_x64_dll
+       ```
+     - **Include Directories**:
+       ```
+       E:\libwx\wxWidgets-3.2.0\include
+       ```
+   
+   #### Cài đặt thư viện OpenSSL
+   - **Tab Parameters**:
+     - **C++ Linker**:
+       Thêm vào ô `Linker` (kèm theo các tham số của wxWidgets):
+       ```
+       -L"E:\openssl-master\openssl-master\lib\mingw\x64" -lcrypto -lws2_32 -lcrypt32
+       ```
+   - **Tab Directories**:
+     - **Library Directories**:
+       ```
+       E:\openssl-master\openssl-master\lib\mingw\x64
+       ```
+     - **Include Directories**:
+       ```
+       E:\openssl-master\openssl-master\include
+       ```
+3. **Tạo thư mục sao lưu**:
+   - Tạo thư mục `E:/tai_lieu/c++/backups` để lưu bản sao lưu.
+   - Đảm bảo ứng dụng có quyền đọc/ghi trên thư mục `E:/tai_lieu/c++`.
 
-Thêm vào ô `Compiler`:
+4. **Biên dịch và chạy**:
+   - Biên dịch mã nguồn với trình biên dịch hỗ trợ C++11.
+   - Chạy ứng dụng và kiểm tra chức năng sao lưu.
 
-```text
--D__WXDEBUG__ -D__WXMSW__ -g -O0 -mthreads -Wall
-```
-#####  C++ Linker
-```text
--mthreads -Wl,--subsystem,windows -mwindows -lwxjpeg -lwxpng -lwxzlib 
--lrpcrt4 -loleaut32 -lole32 -luuid -lwinspool -lwinmm -lshell32 
--lcomctl32 -lcomdlg32 -ladvapi32 -lwsock32 -lgdi32 -lwxtiff 
--lwxmsw32u_core -lwxbase32u -lwxexpat
-```
-#### Tab Directories
-- Library Directories
-ví dụ:
-```text
-E:\libwx\wxWidgets-3.2.0\lib\gcc1030TDM_x64_dll
-```
-- Include Directories
-```text
-E:\libwx\wxWidgets-3.2.0\include
-```
+---
+
 ### Bước 3: Build và chạy chương trình
     1. Nhấn F9 để Build & Run chương trình
     2. Giao diện đăng nhập sẽ hiển thị
