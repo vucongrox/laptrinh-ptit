@@ -1,10 +1,9 @@
-
 # Hệ thống đăng nhập và đăng ký tài khoản và quản lý ví điểm thưởng
 
 
 
 
-## Giới thiệu
+## Mô tả dự án
 **Hệ thống Quản lý Tài khoản và Ví Điểm thưởng** là một giải pháp phần mềm toàn diện được thiết kế để cung cấp các chức năng quản lý tài khoản người dùng và hệ thống giao dịch điểm thưởng một cách an toàn, hiệu quả. Dự án tập trung vào ba trụ cột chính:
 
 - **Quản lý tài khoản**: Hỗ trợ đăng ký, đăng nhập, và cập nhật thông tin người dùng với cơ chế bảo mật tiên tiến, bao gồm xác thực bằng mật khẩu băm (hash) và OTP (One-Time Password).
@@ -18,95 +17,119 @@ truong-ngo-edu-0912| Thiết kế giao diện đăng nhập; xây dựng logic �
 K24dtcn380         | Thiết kế giao diện khách hàng (Customer); phát triển các chức năng khách hàng; triển khai hệ thống ví (wallet); thêm ví khách hàng (WalletCustomer); viết mã cho chức năng giao dịch (transaction).
 namnh1988          | Thiết kế giao diện quản lý (Manager); phát triển các chức năng quản lý; triển khai và sửa lỗi các chức năng người dùng (getList, regis, loadFromID); xây dựng cơ chế xác thực OTP.
 
-## Chức năng dự án
+---
 
-### 1. Quản lý tài khoản người dùng
+## Tính năng chính
 
-#### Đăng ký tài khoản
-- Người dùng hoặc quản lý nhập thông tin để tạo tài khoản mới (username, mật khẩu, họ tên, ngày sinh, địa chỉ).
-- Kiểm tra tính hợp lệ (username không trùng lặp, mật khẩu đủ mạnh).
-- Hỗ trợ quản lý tạo tài khoản hộ với thông tin được cung cấp đầy đủ.
+### 1. Quản lý tài khoản
+- **Đăng ký tài khoản**: Người dùng có thể đăng ký tài khoản mới với thông tin gồm tên, ngày sinh, địa chỉ, tên đăng nhập, và mật khẩu.
+- **Đăng nhập**: Xác thực người dùng thông qua tên đăng nhập và mật khẩu đã băm.
+- **Cập nhật thông tin**: Người dùng thông thường có thể chỉnh sửa thông tin cá nhân (tên, ngày sinh, địa chỉ). Quản lý có thể chỉnh sửa thông tin của bất kỳ người dùng nào.
 
-#### Đăng nhập
-- Xác thực thông tin đăng nhập bằng username và mật khẩu.
-- Kiểm tra nếu mật khẩu là tự sinh, yêu cầu người dùng đổi mật khẩu ngay lần đăng nhập đầu tiên.
-
-#### Cập nhật thông tin
-- Người dùng chỉnh sửa thông tin cá nhân (họ tên, ngày sinh, địa chỉ, mật khẩu), trừ username và ID.
-- Yêu cầu xác nhận cập nhật thông qua mã OTP gửi đến người dùng.
-
-#### Thay đổi mật khẩu
-- Người dùng tự đổi mật khẩu sau khi xác thực mật khẩu hiện tại.
-- Yêu cầu mật khẩu mới đủ mạnh (bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt).
-- Xác nhận thay đổi bằng mã OTP.
-
-#### Sinh mật khẩu tự động
-- Tạo mật khẩu ngẫu nhiên khi quản lý mở tài khoản mới mà người dùng không cung cấp mật khẩu.
-- Đánh dấu mật khẩu tự sinh và yêu cầu đổi mật khẩu ở lần đăng nhập đầu tiên.
-
-### 2. Quản lý ví điểm thưởng
-
-#### Tạo và quản lý ví
-- Mỗi người dùng được gán một ví với mã định danh duy nhất.
-- Quản lý ví tổng để phát sinh và phân phối điểm cho các ví khác.
-
-#### Giao dịch chuyển điểm
-- Chuyển điểm từ ví A sang ví B với các bước kiểm tra:
-  - Xác minh ví nguồn và ví đích tồn tại.
-  - Yêu cầu xác thực giao dịch bằng mã OTP.
-  - Kiểm tra số dư ví nguồn đủ để thực hiện chuyển điểm.
-  - Thực hiện giao dịch nguyên tử: trừ điểm ví A, cộng điểm ví B.
-  - Hủy giao dịch nếu có lỗi (OTP sai, số dư không đủ).
-
-#### Theo dõi số dư và lịch sử giao dịch
-- Hiển thị số dư hiện tại của ví.
-- Cung cấp danh sách lịch sử giao dịch (mã giao dịch, ví nguồn, ví đích, số điểm, thời gian, trạng thái).
+### 2. Quản lý ví và giao dịch
+- **Ví người dùng**: Mỗi người dùng có một ví với số dư điểm, được lưu trong `wallets.txt`.
+- **Chuyển điểm**: Người dùng thông thường có thể chuyển điểm từ ví của mình sang ví của người dùng khác.
+- **Thêm điểm**: Quản lý có thể thêm điểm vào ví của người dùng hoặc ví tổng (walletId = 0).
+- **Lịch sử giao dịch**: Người dùng thông thường có thể xem lịch sử giao dịch của mình, quản lý có thể xem toàn bộ lịch sử giao dịch.
 
 ### 3. Bảo mật và xác thực
 
 #### Mã hóa mật khẩu
-- Lưu trữ mật khẩu dưới dạng băm sử dụng hàm băm (ví dụ: SHA-256) để đảm bảo an toàn.
+- Mật khẩu của người dùng được băm trước khi lưu trữ để đảm bảo an toàn.
+- Sử dụng hàm băm (SHA-256) để mã hóa mật khẩu.
+- Mật khẩu băm được lưu trong tệp `taikhoan.txt` mà không kèm muối.
+  - Ví dụ: Mật khẩu "password123" được băm thành "2da1eed431f8991b".
 
 #### Xác thực OTP
-- Sinh mã OTP cho các thao tác quan trọng (cập nhật thông tin, giao dịch chuyển điểm).
-- Gửi OTP (giả lập hiển thị trên giao diện) và kiểm tra tính hợp lệ, bao gồm thời gian hết hạn.
+- **Sinh mã OTP**: Sử dụng thuật toán TOTP (Time-based One-Time Password) để tạo mã OTP cho các thao tác quan trọng (cập nhật thông tin, giao dịch chuyển điểm).
+  - Mã OTP được tạo dựa trên thời gian hiện tại và khóa bí mật cố định ("MYAPPSECRET12345").
+  - Sử dụng HMAC-SHA1 để tính toán giá trị băm, sau đó rút gọn thành mã số 6 chữ số.
+  - Mã OTP có thời gian hết hạn là 30 giây.
+- **Hiển thị OTP**: Mã OTP được hiển thị trên giao diện thông qua hộp thoại `wxMessageBox` (giả lập gửi OTP).
+- **Kiểm tra OTP**:
+  - Người dùng nhập mã OTP vào hộp thoại `wxTextEntryDialog`.
+  - Hệ thống kiểm tra:
+    - So sánh mã OTP nhập vào với mã đã tạo.
+    - Kiểm tra thời gian hết hạn (30 giây kể từ khi mã được tạo).
+  - Nếu OTP không khớp hoặc hết hạn, thao tác sẽ bị hủy.
 
 #### Phân quyền người dùng
-- Người dùng thông thường: Chỉ truy cập và chỉnh sửa thông tin cá nhân, thực hiện giao dịch ví.
-- Người dùng quản lý: Có quyền tạo tài khoản mới, chỉnh sửa thông tin người dùng, theo dõi danh sách người dùng.
+- **Người dùng thông thường (Customer)**:
+  - Truy cập và chỉnh sửa thông tin cá nhân (tên, ngày sinh, địa chỉ).
+  - Đổi mật khẩu cá nhân.
+  - Chuyển điểm giữa các ví và xem lịch sử giao dịch của bản thân.
+  - Tìm kiếm thông tin của người dùng khác qua tên đăng nhập.
+- **Người dùng quản lý (Manager)**:
+  - Tạo tài khoản mới cho người dùng.
+  - Chỉnh sửa thông tin của bất kỳ người dùng nào.
+  - Xem danh sách tất cả người dùng (bao gồm tên đăng nhập, ngày sinh, địa chỉ, và số dư ví).
+  - Thêm điểm vào ví của người dùng hoặc ví tổng.
+  - Xem toàn bộ lịch sử giao dịch của hệ thống.
 
 ### 4. Lưu trữ và sao lưu dữ liệu
 
 #### Lưu trữ dữ liệu
-- Lưu thông tin tài khoản và ví vào tệp (đề xuất một tệp duy nhất như `users.dat` và `wallets.dat`).
+- **Tệp `taikhoan.txt`**:
+  - Lưu thông tin tài khoản người dùng.
+  - Định dạng: `id|accountType|username|hashedPassword|name|dob|address|walletId`.
+  - Ví dụ:
+    ```
+    1|1|admin|2da1eed431f8991b|Admin|01/01/1990|Ha Noi|1001
+    2|0|khach1|942b0c273781c4d2|Khach Mot|15/05/1995|Ho Chi Minh|1002
+    ```
+- **Tệp `wallets.txt`**:
+  - Lưu thông tin ví và số dư.
+  - Định dạng: `walletId|balance`.
+  - Ví dụ:
+    ```
+    1001|0
+    1002|100
+    ```
+- **Tệp `transactions.txt`**:
+  - Lưu lịch sử giao dịch.
+  - Định dạng: `senderWalletId|receiverWalletId|points|timestamp|status`.
+  - Ví dụ:
+    ```
+    0|1002|100|Fri Apr 26 12:34:56 2025|success
+    ```
 
 #### Sao lưu và phục hồi
-- Tạo bản sao lưu tự động sau mỗi cập nhật dữ liệu (tệp chính và backup có nhãn thời gian).
-- Hỗ trợ khôi phục dữ liệu từ bản sao lưu mới nhất nếu tệp chính bị lỗi.
+- **Sao lưu tự động**:
+  - Tạo bản sao lưu cho `taikhoan.txt`, `transactions.txt`, và `wallets.txt` sau mỗi thao tác cập nhật dữ liệu (đăng ký, chỉnh sửa thông tin, giao dịch).
+  - Sao lưu định kỳ mỗi 6 phút (để kiểm tra, có thể điều chỉnh lại sau).
+  - Bản sao lưu được lưu vào thư mục `E:/tai_lieu/c++/backups` với nhãn thời gian (ví dụ: `taikhoan_backup_1696112400.txt`).
+  - Giữ tối đa 7 bản sao gần nhất cho mỗi loại tệp để tiết kiệm không gian.
+- **Phục hồi dữ liệu**:
+  - Quản lý (Manager) có thể khôi phục dữ liệu từ bản sao lưu mới nhất thông qua giao diện (tab "Sao Luu va Phuc Hoi", nút "Phuc Hoi Du Lieu").
+  - Quy trình phục hồi: Sao chép bản sao lưu gần nhất vào vị trí tệp gốc.
 
-### 5. Chức năng dành riêng cho quản lý
+---
 
-#### Theo dõi danh sách người dùng
-- Hiển thị danh sách tất cả người dùng (trừ mật khẩu) với thông tin như username, ngày sinh, địa chỉ, số dư ví.
+## Hướng dẫn kiểm tra sao lưu
+1. **Sao lưu định kỳ**:
+   - Chạy ứng dụng và đợi 6 phút để kiểm tra bản sao lưu tự động.
+   - Kiểm tra thư mục `E:/tai_lieu/c++/backups` để xem các tệp sao lưu (ví dụ: `taikhoan_backup_1696112400.txt`).
 
-#### Tạo tài khoản mới
-- Quản lý nhập thông tin và tạo tài khoản mới cho người dùng khác.
+2. **Sao lưu theo sự kiện**:
+   - Thực hiện một thao tác thay đổi dữ liệu (đăng ký người dùng, cập nhật thông tin, chuyển điểm).
+   - Kiểm tra ngay thư mục sao lưu để xác nhận bản sao mới được tạo.
 
-#### Chỉnh sửa thông tin người dùng
-- Điều chỉnh thông tin tài khoản theo yêu cầu, với xác nhận bằng OTP gửi đến người dùng.
+3. **Phục hồi dữ liệu**:
+   - Xóa hoặc sửa lỗi một tệp gốc (như `taikhoan.txt`).
+   - Vào tab "Sao Luu va Phuc Hoi" trong giao diện Manager, nhấn nút "Phuc Hoi Du Lieu" để khôi phục.
 
-### 6. Giao diện và báo cáo
+---
+## Yêu cầu hệ thống
+- **Hệ điều hành**: Windows (đường dẫn sử dụng `E:/tai_lieu/c++`).
+- **Thư viện**:
+  - wxWidgets: Để xây dựng giao diện người dùng.
+  - OpenSSL: Để tính toán mã OTP (TOTP với HMAC-SHA1).
+- **Trình biên dịch**: Hỗ trợ C++11 trở lên.
+- **Phụ thuộc**:
+  - Thư viện `filesystem` (C++17) để quản lý tệp sao lưu.
 
-#### Giao diện người dùng
-- Giao diện đăng nhập và đăng ký tài khoản.
-- Giao diện khách hàng: Xem và chỉnh sửa thông tin cá nhân, quản lý ví.
-- Giao diện quản lý: Quản lý danh sách người dùng, tạo tài khoản, chỉnh sửa thông tin.
-
-#### Báo cáo
-- Hiển thị báo cáo số dư ví và lịch sử giao dịch.
-- Hỗ trợ lọc giao dịch theo thời gian hoặc trạng thái (thành công/thất bại).
-## Hướng dẫn cài đặt và mô tả tệp tin
-
+---
+## Hướng dẫn cài đặt
 ### 1. Tải chương trình
 Để tải mã nguồn của dự án từ kho GitHub, làm theo một trong các cách sau:
 
