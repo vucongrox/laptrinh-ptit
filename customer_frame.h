@@ -21,6 +21,7 @@ private:
     wxTextCtrl* receiverUsernameInput;
     wxTextCtrl* transferPointsInput;
     wxTextCtrl* searchUsernameInput;
+    wxTextCtrl* searchResultText; 
     wxTextCtrl* nameInput;
     wxTextCtrl* dobInput;
     wxTextCtrl* addressInput;
