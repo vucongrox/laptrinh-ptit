@@ -39,6 +39,7 @@ public:
     static std::string getCustomerList();
     static bool registerAccount(const std::string& username, const std::string& password,
                               const std::string& name, const std::string& dob, const std::string& address);
+
     void loadFromId(int id);
     bool updatePersonalInfo(const std::string& name, const std::string& dob, const std::string& address, wxWindow* parent);
     int getId() const { return id; }
