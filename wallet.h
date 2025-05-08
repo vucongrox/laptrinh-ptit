@@ -18,5 +18,4 @@ public:
     static Wallet* loadFromFile(int walletId);
     static int getMaxWalletId();
 };
-
 #endif
