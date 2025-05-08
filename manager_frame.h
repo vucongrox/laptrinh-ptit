@@ -19,15 +19,17 @@ private:
     wxTextCtrl* customersOutputText;
     wxTextCtrl* usernameInput;
     wxTextCtrl* passwordInput;
+    wxTextCtrl* nameInput; 
     wxTextCtrl* dobInput;
     wxTextCtrl* addressInput;
     wxTextCtrl* customerIdInput;
     wxTextCtrl* pointsInput;
-    wxTextCtrl* updateIdInput; // Giờ là username
+    wxTextCtrl* updateIdInput; 
+    wxTextCtrl* updateNameInput;
     wxTextCtrl* updateDobInput;
     wxTextCtrl* updateAddressInput;
     wxTextCtrl* historyText;
-    wxTextCtrl* totalPointsInput; // Thêm cho tab mới
+    wxTextCtrl* totalPointsInput; 
     wxButton* logoutBtn;
 
     void OnViewInfo(wxCommandEvent& event);
@@ -36,7 +38,7 @@ private:
     void OnAddPoints(wxCommandEvent& event);
     void OnUpdateUserInfo(wxCommandEvent& event);
     void OnViewHistory(wxCommandEvent& event);
-    void OnAddTotalPoints(wxCommandEvent& event); // Thêm hàm mới
+    void OnAddTotalPoints(wxCommandEvent& event);
     void OnLogout(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
 };
