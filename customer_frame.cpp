@@ -1,8 +1,8 @@
 #include "customer_frame.h"
-#include "login_frame.h" // Thêm để dùng LoginFrame
+#include "login_frame.h"
 
 CustomerFrame::CustomerFrame(const wxString& title, int userId) 
-    : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(500, 400)), userId(userId) {
+    : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)), userId(userId) {
     customer = new Customer();
     customer->loadFromId(userId);
     
@@ -15,10 +15,12 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     wxPanel* infoPanel = new wxPanel(notebook);
     wxBoxSizer* infoSizer = new wxBoxSizer(wxVERTICAL);
     wxButton* viewInfoBtn = new wxButton(infoPanel, wxID_ANY, "Xem Thong Tin");
-    outputText = new wxTextCtrl(infoPanel, wxID_ANY, "", wxDefaultPosition, wxSize(450, 150), 
+    viewInfoBtn->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    outputText = new wxTextCtrl(infoPanel, wxID_ANY, "", wxDefaultPosition, wxSize(750, 300), 
                                 wxTE_MULTILINE | wxTE_READONLY);
-    infoSizer->Add(viewInfoBtn, 0, wxALL, 5);
-    infoSizer->Add(outputText, 1, wxEXPAND | wxALL, 5);
+    outputText->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    infoSizer->Add(viewInfoBtn, 0, wxALL | wxALIGN_CENTER, 10);
+    infoSizer->Add(outputText, 1, wxEXPAND | wxALL, 10);
     infoPanel->SetSizer(infoSizer);
     notebook->AddPage(infoPanel, "Thong Tin");
     
@@ -27,18 +29,21 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     wxBoxSizer* passwordSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* passwordInputSizer = new wxBoxSizer(wxHORIZONTAL);
     passwordInputSizer->Add(new wxStaticText(passwordPanel, wxID_ANY, "Mat Khau Cu:"), 
-                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     oldPasswordInput = new wxTextCtrl(passwordPanel, wxID_ANY, "", wxDefaultPosition, 
                                       wxDefaultSize, wxTE_PASSWORD);
-    passwordInputSizer->Add(oldPasswordInput, 1, wxALL | wxEXPAND, 5);
+    oldPasswordInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    passwordInputSizer->Add(oldPasswordInput, 1, wxALL | wxEXPAND, 10);
     passwordInputSizer->Add(new wxStaticText(passwordPanel, wxID_ANY, "Mat Khau Moi:"), 
-                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     newPasswordInput = new wxTextCtrl(passwordPanel, wxID_ANY, "", wxDefaultPosition, 
                                       wxDefaultSize, wxTE_PASSWORD);
-    passwordInputSizer->Add(newPasswordInput, 1, wxALL | wxEXPAND, 5);
+    newPasswordInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    passwordInputSizer->Add(newPasswordInput, 1, wxALL | wxEXPAND, 10);
     wxButton* changePasswordBtn = new wxButton(passwordPanel, wxID_ANY, "Doi Mat Khau");
-    passwordSizer->Add(passwordInputSizer, 0, wxEXPAND | wxALL, 5);
-    passwordSizer->Add(changePasswordBtn, 0, wxALL, 5);
+    changePasswordBtn->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    passwordSizer->Add(passwordInputSizer, 0, wxEXPAND | wxALL, 10);
+    passwordSizer->Add(changePasswordBtn, 0, wxALL | wxALIGN_CENTER, 10);
     passwordPanel->SetSizer(passwordSizer);
     notebook->AddPage(passwordPanel, "Doi Mat Khau");
     
@@ -47,22 +52,26 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     wxBoxSizer* updateSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* updateInputSizer = new wxBoxSizer(wxHORIZONTAL);
     updateInputSizer->Add(new wxStaticText(updatePanel, wxID_ANY, "Ten:"), 
-                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     nameInput = new wxTextCtrl(updatePanel, wxID_ANY);
-    updateInputSizer->Add(nameInput, 1, wxALL | wxEXPAND, 5);
+    nameInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    updateInputSizer->Add(nameInput, 1, wxALL | wxEXPAND, 10);
     updateInputSizer->Add(new wxStaticText(updatePanel, wxID_ANY, "Ngay Sinh:"), 
-                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     dobInput = new wxTextCtrl(updatePanel, wxID_ANY);
-    updateInputSizer->Add(dobInput, 1, wxALL | wxEXPAND, 5);
+    dobInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    updateInputSizer->Add(dobInput, 1, wxALL | wxEXPAND, 10);
     wxBoxSizer* addrSizer = new wxBoxSizer(wxHORIZONTAL);
     addrSizer->Add(new wxStaticText(updatePanel, wxID_ANY, "Dia Chi:"), 
-                   0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                   0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     addressInput = new wxTextCtrl(updatePanel, wxID_ANY);
-    addrSizer->Add(addressInput, 1, wxALL | wxEXPAND, 5);
+    addressInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    addrSizer->Add(addressInput, 1, wxALL | wxEXPAND, 10);
     wxButton* updateBtn = new wxButton(updatePanel, wxID_ANY, "Cap Nhat");
-    updateSizer->Add(updateInputSizer, 0, wxEXPAND | wxALL, 5);
-    updateSizer->Add(addrSizer, 0, wxEXPAND | wxALL, 5);
-    updateSizer->Add(updateBtn, 0, wxALL, 5);
+    updateBtn->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    updateSizer->Add(updateInputSizer, 0, wxEXPAND | wxALL, 10);
+    updateSizer->Add(addrSizer, 0, wxEXPAND | wxALL, 10);
+    updateSizer->Add(updateBtn, 0, wxALL | wxALIGN_CENTER, 10);
     updatePanel->SetSizer(updateSizer);
     notebook->AddPage(updatePanel, "Cap Nhat Thong Tin");
 
@@ -71,16 +80,19 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     wxBoxSizer* transferSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* transferInputSizer = new wxBoxSizer(wxHORIZONTAL);
     transferInputSizer->Add(new wxStaticText(transferPanel, wxID_ANY, "Username Nguoi Nhan:"), 
-                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     receiverUsernameInput = new wxTextCtrl(transferPanel, wxID_ANY);
-    transferInputSizer->Add(receiverUsernameInput, 1, wxALL | wxEXPAND, 5);
+    receiverUsernameInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    transferInputSizer->Add(receiverUsernameInput, 1, wxALL | wxEXPAND, 10);
     transferInputSizer->Add(new wxStaticText(transferPanel, wxID_ANY, "Diem Chuyen:"), 
-                           0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                           0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     transferPointsInput = new wxTextCtrl(transferPanel, wxID_ANY);
-    transferInputSizer->Add(transferPointsInput, 1, wxALL | wxEXPAND, 5);
+    transferPointsInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    transferInputSizer->Add(transferPointsInput, 1, wxALL | wxEXPAND, 10);
     wxButton* transferPointsBtn = new wxButton(transferPanel, wxID_ANY, "Chuyen Diem");
-    transferSizer->Add(transferInputSizer, 0, wxEXPAND | wxALL, 5);
-    transferSizer->Add(transferPointsBtn, 0, wxALL, 5);
+    transferPointsBtn->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    transferSizer->Add(transferInputSizer, 0, wxEXPAND | wxALL, 10);
+    transferSizer->Add(transferPointsBtn, 0, wxALL | wxALIGN_CENTER, 10);
     transferPanel->SetSizer(transferSizer);
     notebook->AddPage(transferPanel, "Chuyen Diem");
 
@@ -89,12 +101,18 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     wxBoxSizer* searchSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* searchInputSizer = new wxBoxSizer(wxHORIZONTAL);
     searchInputSizer->Add(new wxStaticText(searchPanel, wxID_ANY, "Username:"), 
-                          0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+                          0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
     searchUsernameInput = new wxTextCtrl(searchPanel, wxID_ANY);
-    searchInputSizer->Add(searchUsernameInput, 1, wxALL | wxEXPAND, 5);
+    searchUsernameInput->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    searchInputSizer->Add(searchUsernameInput, 1, wxALL | wxEXPAND, 10);
     wxButton* searchBtn = new wxButton(searchPanel, wxID_ANY, "Tim Kiem");
-    searchSizer->Add(searchInputSizer, 0, wxEXPAND | wxALL, 5);
-    searchSizer->Add(searchBtn, 0, wxALL, 5);
+    searchBtn->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    searchSizer->Add(searchInputSizer, 0, wxEXPAND | wxALL, 10);
+    searchSizer->Add(searchBtn, 0, wxALL | wxALIGN_CENTER, 10);
+    searchResultText = new wxTextCtrl(searchPanel, wxID_ANY, "", wxDefaultPosition, wxSize(750, 300), 
+                                      wxTE_MULTILINE | wxTE_READONLY); // Gán vào biến thành viên
+    searchResultText->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    searchSizer->Add(searchResultText, 1, wxEXPAND | wxALL, 10);
     searchPanel->SetSizer(searchSizer);
     notebook->AddPage(searchPanel, "Tim Khach Hang");
 
@@ -102,17 +120,20 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     wxPanel* historyPanel = new wxPanel(notebook);
     wxBoxSizer* historySizer = new wxBoxSizer(wxVERTICAL);
     wxButton* viewHistoryBtn = new wxButton(historyPanel, wxID_ANY, "Xem Lich Su");
-    historyText = new wxTextCtrl(historyPanel, wxID_ANY, "", wxDefaultPosition, wxSize(450, 150), 
+    viewHistoryBtn->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    historyText = new wxTextCtrl(historyPanel, wxID_ANY, "", wxDefaultPosition, wxSize(750, 300), 
                                  wxTE_MULTILINE | wxTE_READONLY);
-    historySizer->Add(viewHistoryBtn, 0, wxALL, 5);
-    historySizer->Add(historyText, 1, wxEXPAND | wxALL, 5);
+    historyText->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    historySizer->Add(viewHistoryBtn, 0, wxALL | wxALIGN_CENTER, 10);
+    historySizer->Add(historyText, 1, wxEXPAND | wxALL, 10);
     historyPanel->SetSizer(historySizer);
     notebook->AddPage(historyPanel, "Lich Su Giao Dich");
     
     wxButton* logoutBtn = new wxButton(mainPanel, wxID_ANY, "Dang Xuat");
+    logoutBtn->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     
-    mainSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
-    mainSizer->Add(logoutBtn, 0, wxALL | wxALIGN_CENTER, 5);
+    mainSizer->Add(notebook, 1, wxEXPAND | wxALL, 10);
+    mainSizer->Add(logoutBtn, 0, wxALL | wxALIGN_CENTER, 10);
     mainPanel->SetSizer(mainSizer);
     
     // Bind events
@@ -125,7 +146,7 @@ CustomerFrame::CustomerFrame(const wxString& title, int userId)
     logoutBtn->Bind(wxEVT_BUTTON, &CustomerFrame::OnLogout, this);
     Bind(wxEVT_CLOSE_WINDOW, &CustomerFrame::OnClose, this);
 
-    Centre(); // Căn giữa cửa sổ
+    Centre();
 }
 
 CustomerFrame::~CustomerFrame() {
@@ -157,8 +178,8 @@ void CustomerFrame::OnUpdateInfo(wxCommandEvent& event) {
     std::string name = nameInput->GetValue().ToStdString();
     std::string dob = dobInput->GetValue().ToStdString();
     std::string address = addressInput->GetValue().ToStdString();
-    if (name.empty() || dob.empty() || address.empty()) {
-        wxMessageBox("Vui long nhap day du thong tin!", "Loi", wxOK | wxICON_ERROR);
+    if (name.empty() && dob.empty() && address.empty()) {
+        wxMessageBox("Vui long nhap it nhat mot truong de cap nhat!", "Loi", wxOK | wxICON_ERROR);
         return;
     }
     if (customer->updatePersonalInfo(name, dob, address, this)) {
@@ -167,7 +188,7 @@ void CustomerFrame::OnUpdateInfo(wxCommandEvent& event) {
         dobInput->Clear();
         addressInput->Clear();
         notebook->SetSelection(0);
-        OnViewInfo(event); // Cập nhật thông tin trong tab "Thong Tin"
+        OnViewInfo(event);
     } else {
         wxMessageBox("Cap nhat that bai!", "Loi", wxOK | wxICON_ERROR);
     }
@@ -185,7 +206,7 @@ void CustomerFrame::OnTransferPoints(wxCommandEvent& event) {
         receiverUsernameInput->Clear();
         transferPointsInput->Clear();
         notebook->SetSelection(0);
-        OnViewInfo(event); // Cập nhật thông tin sau khi chuyển điểm
+        OnViewInfo(event);
     } else {
         wxMessageBox("Chuyen diem that bai! Kiem tra username hoac so diem.", "Loi", wxOK | wxICON_ERROR);
     }
@@ -199,8 +220,7 @@ void CustomerFrame::OnSearchCustomer(wxCommandEvent& event) {
     }
     std::string output;
     if (customer->findCustomerByUsername(username, output)) {
-        notebook->SetSelection(0);
-        outputText->SetValue(output);
+        searchResultText->SetValue(output);
     } else {
         wxMessageBox(output.empty() ? "Khong tim thay khach hang!" : output, "Ket Qua", wxOK | wxICON_INFORMATION);
     }
